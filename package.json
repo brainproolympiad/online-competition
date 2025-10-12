@@ -1,6 +1,6 @@
 {
   "name": "comp",
-  "homepage": "https:/brainproolympiad.github.io/online-competition/",
+  "homepage": "https://brainproolympiad.github.io/online-competition/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "vite build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "deploy-all": "git add . && git commit -m \"Deploy update\" && npm run deploy"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
