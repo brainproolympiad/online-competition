@@ -1,0 +1,21 @@
+{
+  // "$schema": "https://www.schemastore.org/tsconfig", // Removed or commented out to avoid schema loading error
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}
+
+
+// {
+//   "compilerOptions": {
+//     "skipLibCheck": true,
+//     "noEmitOnError": false,
+//     "noImplicitAny": false,
+//     "suppressImplicitAnyIndexErrors": true,
+//     "strict": false,
+//     "noUnusedLocals": false,
+//     "noUnusedParameters": false
+//   }
+// }
