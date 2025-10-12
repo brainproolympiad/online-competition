@@ -9,6 +9,7 @@ import QuizPage from "./pages/QuizPage";
 import About from "./pages/About";
 import Alumni from "./pages/Alumni";
 import Contact from "./pages/Contact";
+import QuizLinkEntry from "./pages/QuizLinkEntry";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
 
         {/* Quiz-related routes */}
         <Route path="/quiz-login" element={<QuizLogin />} />
+         <Route path="/quiz-link" element={<QuizLinkEntry />} />
         <Route path="/quiz/:quizId" element={<QuizPage />} />
 
         {/* Info pages */}

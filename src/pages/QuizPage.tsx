@@ -131,6 +131,14 @@ const QuizPage: React.FC = () => {
     }
   }, [warnings, totalWarnings]);
 
+  // Add this useEffect to handle automatic submission when warnings reach 5
+useEffect(() => {
+  if (warnings >= 5 && quizStarted && !showResults) {
+    console.log("Max warnings reached. Auto-submitting quiz...");
+    handleSubmitQuiz(true, "Maximum warnings exceeded", warnings, ["Exceeded maximum allowed warnings"]);
+  }
+}, [warnings, quizStarted, showResults]);
+
   // Clean HTML tags from text
   const cleanText = (text: string): string => {
     if (!text) return '';

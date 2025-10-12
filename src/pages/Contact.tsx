@@ -107,7 +107,7 @@ const Contact: React.FC = () => {
           {
             icon: <FaPhoneAlt />,
             title: "Phone",
-            info: "+234 706 995 8609",
+            info: " +2347014433155  +2347079073879",
             color: "from-cyan-500 to-cyan-600",
           },
           {

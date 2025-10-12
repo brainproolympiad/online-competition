@@ -204,7 +204,7 @@ const Footer: React.FC = () => {
             <FaPhoneAlt className="text-blue-500 mt-1" />
             <div>
               <h4 className="font-semibold text-gray-800">Call Us</h4>
-              <p>+234 706 995 8609</p>
+              <p> +2347014433155 OR +2347079073879</p>
             </div>
           </div>
           <div className="flex items-start space-x-3">
@@ -220,7 +220,7 @@ const Footer: React.FC = () => {
         <div className="border-t border-gray-200 pt-6 text-center text-sm text-gray-500">
           <p>
             © {new Date().getFullYear()}{" "}
-            <span className="font-semibold text-blue-600">Academic Challenge</span> — All
+            <span className="font-semibold text-blue-600">Brain Pro Olympiad</span> — All
             Rights Reserved.
           </p>
           <div className="flex justify-center gap-6 mt-3">

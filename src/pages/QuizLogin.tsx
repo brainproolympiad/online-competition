@@ -1,11 +1,10 @@
 // src/pages/QuizLogin.tsx
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { supabase } from "../supabaseClient";
 
 const QuizLogin: React.FC = () => {
-  const { quizId } = useParams();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -50,15 +49,6 @@ const QuizLogin: React.FC = () => {
     }, 1000);
   }, [isMobile]);
 
-  // Hide URL bar techniques
-  useEffect(() => {
-    window.scrollTo(0, 1);
-    
-    if ('standalone' in window.navigator || window.matchMedia('(display-mode: standalone)').matches) {
-      document.documentElement.requestFullscreen?.();
-    }
-  }, []);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -86,7 +76,7 @@ const QuizLogin: React.FC = () => {
       Swal.fire({
         icon: "success",
         title: "Access Granted",
-        text: "Initializing proctored session...",
+        text: "Redirecting to quiz entry...",
         timer: 1500,
         showConfirmButton: false,
         background: '#0a0a0a',
@@ -94,10 +84,9 @@ const QuizLogin: React.FC = () => {
       });
 
       setTimeout(() => {
-        navigate(`/quiz/${quizId}`, {
+        navigate("/quiz-link", {
           state: {
             participant: data,
-            quizId: quizId,
           },
           replace: true
         });
@@ -116,7 +105,6 @@ const QuizLogin: React.FC = () => {
   };
 
   const handleSocialLogin = async (provider: string) => {
-    // Show loading state
     const loadingSwal = Swal.fire({
       title: `Connecting to ${provider}`,
       text: "Initializing secure authentication...",
@@ -128,10 +116,7 @@ const QuizLogin: React.FC = () => {
       color: '#fff'
     });
 
-    // Simulate authentication process
     await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Close loading and show registration error
     await loadingSwal;
     
     Swal.fire({
@@ -251,7 +236,6 @@ const QuizLogin: React.FC = () => {
           <div>
             {/* Logo & Title */}
             <div className="flex items-center space-x-3 md:space-x-4 mb-4 md:mb-6">
-             
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
                   BrainPro Olympiad
@@ -259,18 +243,6 @@ const QuizLogin: React.FC = () => {
                 <p className="text-gray-400 text-xs md:text-sm">Elite Academic Challenge Platform</p>
               </div>
             </div>
-
-            {/* Quiz ID */}
-            {quizId && (
-              <div className="bg-gray-700/50 border border-gray-600 rounded-xl p-3 md:p-4 mb-4 md:mb-6">
-                <p className="text-xs md:text-sm text-gray-300 font-semibold">
-                  <span className="text-purple-400">Session ID: </span>
-                  <span className="font-mono text-white ml-2 bg-gray-900 px-2 md:px-3 py-1 rounded border border-gray-600">
-                    {quizId}
-                  </span>
-                </p>
-              </div>
-            )}
 
             {/* Proctoring Features */}
             <div className="space-y-3 md:space-y-4">
@@ -357,7 +329,7 @@ const QuizLogin: React.FC = () => {
               />
             </div>
 
-            {/* <button
+            <button
               type="submit"
               disabled={loading}
               className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-2 md:py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-60 flex items-center justify-center space-x-2 text-sm md:text-base"
@@ -373,25 +345,7 @@ const QuizLogin: React.FC = () => {
                   <span>Begin Olympiad Challenge</span>
                 </>
               )}
-            </button> */}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-2 md:py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-60 flex items-center justify-center space-x-2 text-sm md:text-base"
-              >
-                {loading ? (
-                  <>
-                    <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Initializing Proctoring...</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="font-bold">→</span>
-                    <span>Begin Olympiad Challenge</span>
-                  </>
-                )}
-              </button>
+            </button>
           </form>
 
           {/* Social Login Options */}
@@ -451,9 +405,6 @@ const QuizLogin: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Bottom Security Bar */}
-     
 
       {/* Add CSS for animations */}
       <style>{`
