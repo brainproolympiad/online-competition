@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Register from "./pages/Register";
 import SignIn from "./pages/SignIn";
@@ -13,7 +13,7 @@ import QuizLinkEntry from "./pages/QuizLinkEntry";
 
 function App() {
   return (
-    <HashRouter>
+    <>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
@@ -23,7 +23,7 @@ function App() {
 
         {/* Quiz-related routes */}
         <Route path="/quiz-login" element={<QuizLogin />} />
-        <Route path="/quiz-link" element={<QuizLinkEntry />} />
+         <Route path="/quiz-link" element={<QuizLinkEntry />} />
         <Route path="/quiz/:quizId" element={<QuizPage />} />
 
         {/* Info pages */}
@@ -31,7 +31,7 @@ function App() {
         <Route path="/alumni" element={<Alumni />} />
         <Route path="/contact" element={<Contact />} />
       </Routes>
-    </HashRouter>
+    </>
   );
 }
 
