@@ -1,6 +1,7 @@
 // src/pages/dashboards/AdminDashboard.tsx
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { supabase } from "../../../supabaseClient";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import AdminContentManager from "./AdminContentManager";
 
@@ -42,6 +43,7 @@ interface AdminSettings {
 }
 
 const AdminDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [quizzes, setQuizzes] = useState<QuizInfo[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
@@ -67,6 +69,82 @@ const AdminDashboard: React.FC = () => {
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
+
+  // --- AUTHENTICATION CHECK ---
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Auth check error:', error);
+        redirectToHome();
+        return;
+      }
+
+      if (!session) {
+        redirectToHome();
+        return;
+      }
+
+      // Optional: Check if user has admin role (if you have role-based access)
+      // const user = session.user;
+      // You can add additional role checks here if needed
+
+      addDebugLog("AUTH_CHECK_SUCCESS", session.user.id);
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      redirectToHome();
+    }
+  };
+
+  const redirectToHome = () => {
+    Swal.fire({
+      title: "Access Denied",
+      text: "You need to be logged in to access this page",
+      icon: "warning",
+      confirmButtonText: "Go to Home"
+    }).then(() => {
+      navigate("/");
+    });
+  };
+
+  // --- LOGOUT FUNCTION ---
+  const handleLogout = async () => {
+    try {
+      addDebugLog("LOGOUT_ATTEMPT");
+      
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        throw error;
+      }
+
+      // Clear any local storage
+      localStorage.removeItem(LOCAL_STORAGE_KEYS.PARTICIPANTS_CACHE);
+      localStorage.removeItem(LOCAL_STORAGE_KEYS.LAST_FETCH_TIME);
+      localStorage.removeItem(LOCAL_STORAGE_KEYS.ADMIN_SETTINGS);
+
+      addDebugLog("LOGOUT_SUCCESS");
+      
+      Swal.fire({
+        title: "Logged Out",
+        text: "You have been successfully logged out",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false
+      }).then(() => {
+        navigate("/");
+      });
+      
+    } catch (error: any) {
+      addDebugLog("LOGOUT_ERROR", undefined, undefined, error.message);
+      Swal.fire("Error", "Failed to log out", "error");
+    }
+  };
 
   // --- DEBUG LOGGING ---
   const addDebugLog = useCallback((action: string, participantId?: string, data?: any, error?: string) => {
@@ -869,6 +947,7 @@ const AdminDashboard: React.FC = () => {
         setShowDebug={setShowDebug}
         fetchParticipants={fetchAllData}
         addDebugLog={addDebugLog}
+        onLogout={handleLogout} // Add logout handler to AdminHeader
       />
 
       {showDebug && (
