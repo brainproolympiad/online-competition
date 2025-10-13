@@ -1,0 +1,7 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+// src/pages/dashboards/components/StatisticsCards.tsx
+import React from "react";
+const StatisticsCards = ({ statistics }) => {
+    return (_jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6", children: [_jsxs("div", { className: "bg-white p-4 rounded shadow", children: [_jsx("h3", { className: "font-semibold text-gray-600", children: "Total Participants" }), _jsx("p", { className: "text-2xl font-bold", children: statistics.total })] }), _jsxs("div", { className: "bg-white p-4 rounded shadow", children: [_jsx("h3", { className: "font-semibold text-gray-600", children: "Paid Participants" }), _jsx("p", { className: "text-2xl font-bold text-green-600", children: statistics.paid }), _jsxs("p", { className: "text-sm text-gray-500", children: [Math.round(statistics.paymentRate), "% payment rate"] })] }), _jsxs("div", { className: "bg-white p-4 rounded shadow", children: [_jsx("h3", { className: "font-semibold text-gray-600", children: "With Quiz Links" }), _jsx("p", { className: "text-2xl font-bold text-blue-600", children: statistics.withQuizLinks })] }), _jsxs("div", { className: "bg-white p-4 rounded shadow", children: [_jsx("h3", { className: "font-semibold text-gray-600", children: "Average Score" }), _jsx("p", { className: "text-2xl font-bold text-purple-600", children: statistics.averageTotalScore })] })] }));
+};
+export default StatisticsCards;

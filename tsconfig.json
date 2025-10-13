@@ -8,14 +8,3 @@
 }
 
 
-// {
-//   "compilerOptions": {
-//     "skipLibCheck": true,
-//     "noEmitOnError": false,
-//     "noImplicitAny": false,
-//     "suppressImplicitAnyIndexErrors": true,
-//     "strict": false,
-//     "noUnusedLocals": false,
-//     "noUnusedParameters": false
-//   }
-// }

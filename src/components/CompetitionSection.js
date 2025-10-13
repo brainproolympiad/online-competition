@@ -1,0 +1,36 @@
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient'; // make sure supabaseClient is configured
+const CompetitionSection = () => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [registrationDeadline, setRegistrationDeadline] = useState(null);
+    const navigate = useNavigate();
+    const toggleReadMore = () => setIsExpanded(!isExpanded);
+    const handleRegisterNavigation = () => navigate('/Register');
+    // Fetch registration deadline from database
+    useEffect(() => {
+        const fetchDeadline = async () => {
+            const { data, error } = await supabase
+                .from('competition_settings')
+                .select('registration_deadline')
+                .limit(1)
+                .single(); // assuming only one row
+            if (error) {
+                console.error('Error fetching registration deadline:', error);
+            }
+            else if (data) {
+                const date = new Date(data.registration_deadline);
+                const formattedDate = date.toLocaleDateString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                });
+                setRegistrationDeadline(formattedDate);
+            }
+        };
+        fetchDeadline();
+    }, []);
+    return (_jsx("div", { className: "bg-gradient-to-br from-gray-50 to-gray-100 py-16 px-4 md:px-8", children: _jsxs("div", { className: "max-w-6xl mx-auto", children: [_jsxs("div", { className: "text-center mb-12", children: [_jsxs("h2", { className: "text-4xl md:text-5xl font-serif font-bold text-gray-800 mb-4", children: ["Annual ", _jsx("span", { className: "text-blue-600", children: "Brain Pro Olympiad" })] }), _jsx("div", { className: "w-24 h-1 bg-blue-600 mx-auto mb-4" }), _jsx("p", { className: "text-lg text-gray-600 max-w-2xl mx-auto", children: "Join the most prestigious brain pro olympiad competition for secondary schools nationwide" })] }), _jsxs("div", { className: "flex flex-col lg:flex-row items-center gap-10", children: [_jsxs("div", { className: "lg:w-1/2", children: [_jsxs("div", { className: "bg-white rounded-xl shadow-lg p-6 md:p-8", children: [_jsx("h3", { className: "text-2xl md:text-3xl font-bold text-gray-800 mb-4", children: "Showcase Your Knowledge & Win Amazing Prizes" }), _jsx("p", { className: "text-gray-700 mb-4", children: "Our annual brain pro olympiad competition brings together the brightest minds from secondary schools across the country. This is your chance to demonstrate your knowledge, critical thinking skills, and academic prowess." }), _jsxs("div", { className: isExpanded ? 'block' : 'hidden', children: [_jsx("p", { className: "text-gray-700 mb-4", children: "The competition features multiple rounds covering various subjects including Mathematics, English Language, Sciences, Literature, History, and Current Affairs. Each round is designed to challenge participants and encourage deep thinking." }), _jsx("p", { className: "text-gray-700 mb-4", children: "Participants will have the opportunity to compete individually, fostering both independent thinking and problem-solving skills. The final round will be held at the National Convention Center with live audience and broadcasting." }), _jsx("h4", { className: "text-xl font-semibold text-gray-800 mt-6 mb-3", children: "Competition Highlights:" }), _jsxs("ul", { className: "list-disc pl-5 text-gray-700 space-y-2", children: [_jsx("li", { children: "Over N500,000 in scholarships and prizes" }), _jsx("li", { children: "Recognition from top schools and educational institutions" }), _jsx("li", { children: "Media coverage in national educational publications" }), _jsx("li", { children: "Networking opportunities with academic leaders and peers" }), _jsx("li", { children: "Exclusive educational trips for top performers" })] })] }), _jsx("button", { onClick: toggleReadMore, className: "mt-6 flex items-center text-blue-600 font-semibold hover:text-blue-800 transition-colors", children: isExpanded ? (_jsxs(_Fragment, { children: [_jsx("span", { children: "Read Less" }), _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", className: "h-5 w-5 ml-1", viewBox: "0 0 20 20", fill: "currentColor", children: _jsx("path", { fillRule: "evenodd", d: "M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z", clipRule: "evenodd" }) })] })) : (_jsxs(_Fragment, { children: [_jsx("span", { children: "Read More" }), _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", className: "h-5 w-5 ml-1", viewBox: "0 0 20 20", fill: "currentColor", children: _jsx("path", { fillRule: "evenodd", d: "M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z", clipRule: "evenodd" }) })] })) })] }), _jsxs("div", { className: "grid grid-cols-2 gap-4 mt-6", children: [_jsxs("div", { className: "bg-white rounded-lg shadow p-4 text-center", children: [_jsx("div", { className: "text-2xl font-bold text-blue-600", children: "250+" }), _jsx("div", { className: "text-sm text-gray-600", children: "Schools Participating" })] }), _jsxs("div", { className: "bg-white rounded-lg shadow p-4 text-center", children: [_jsx("div", { className: "text-2xl font-bold text-blue-600", children: "N500,000" }), _jsx("div", { className: "text-sm text-gray-600", children: "In Prizes" })] }), _jsxs("div", { className: "bg-white rounded-lg shadow p-4 text-center", children: [_jsx("div", { className: "text-2xl font-bold text-blue-600", children: "12+" }), _jsx("div", { className: "text-sm text-gray-600", children: "Subjects Covered " })] }), _jsxs("div", { className: "bg-white rounded-lg shadow p-4 text-center", children: [_jsx("div", { className: "text-2xl font-bold text-blue-600", children: "4" }), _jsx("div", { className: "text-sm text-gray-600", children: "Competition Rounds" })] })] })] }), _jsxs("div", { className: "lg:w-1/2", children: [_jsxs("div", { className: "relative", children: [_jsx("img", { src: "https://images.unsplash.com/photo-1634951401794-6c84f593db82?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", alt: "Students participating in brain pro olympiad competition", className: "rounded-xl shadow-xl w-full h-auto" }), _jsxs("div", { className: "absolute -bottom-4 -right-4 bg-blue-600 text-white py-3 px-6 rounded-lg shadow-lg", children: [_jsx("div", { className: "text-sm font-semibold", children: "Registration Deadline" }), _jsx("div", { className: "text-xl font-bold", children: registrationDeadline || 'Loading...' })] })] }), _jsxs("div", { className: "mt-8 text-center", children: [_jsx("button", { onClick: handleRegisterNavigation, className: "bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-bold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1", children: "Register Now" }), _jsx("p", { className: "text-gray-600 text-sm mt-4", children: "Limited spots available. Early registration recommended." })] })] })] })] }) }));
+};
+export default CompetitionSection;
