@@ -1,4 +1,4 @@
-// MultiStepRegistration.tsx
+// MultiStepRegistration.tsx - Updated version
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -26,8 +26,6 @@ const MultiStepRegistration: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [formData, setFormData] = useState<any>({});
   const [loading, setLoading] = useState(false);
-
-  // Parent validation state passed to each step
   const [isStepValid, setIsStepValid] = useState(false);
 
   const steps = [
@@ -39,14 +37,29 @@ const MultiStepRegistration: React.FC = () => {
     { title: "Confirmation", icon: <FaCheckCircle /> },
   ];
 
-  // Make sure validation resets when changing steps (so Next doesn't stay enabled)
+  // Reset validation when changing steps, but handle payment step specially
   useEffect(() => {
-    setIsStepValid(false);
-  }, [activeStep]);
+    if (activeStep === 4) { // Payment step
+      // If already paid, keep step valid
+      setIsStepValid(!!formData.paid);
+    } else {
+      setIsStepValid(false);
+    }
+  }, [activeStep, formData.paid]);
 
-  // Render the actual step component and pass setIsStepValid
+  // Watch for payment status changes
+  useEffect(() => {
+    if (activeStep === 4 && formData.paid) {
+      setIsStepValid(true);
+    }
+  }, [formData.paid, activeStep]);
+
   const renderStepComponent = (stepIndex: number) => {
-    const commonProps = { formData, setFormData, setStepValid: setIsStepValid };
+    const commonProps = { 
+      formData, 
+      setFormData, 
+      setStepValid: setIsStepValid 
+    };
 
     switch (stepIndex) {
       case 0:
@@ -60,7 +73,6 @@ const MultiStepRegistration: React.FC = () => {
       case 4:
         return <PaymentStep {...commonProps} />;
       case 5:
-        // Confirmation typically doesn't need validation; pass setStepValid just in case
         return <Confirmation formData={formData} />;
       default:
         return null;
@@ -68,9 +80,10 @@ const MultiStepRegistration: React.FC = () => {
   };
 
   const nextStep = () => {
-    if (!isStepValid) return; // guard
+    if (!isStepValid) return;
     if (activeStep < steps.length - 1) setActiveStep((prev) => prev + 1);
   };
+
   const prevStep = () => {
     if (activeStep > 0) setActiveStep((prev) => prev - 1);
   };
@@ -80,9 +93,20 @@ const MultiStepRegistration: React.FC = () => {
   const handleSubmit = async () => {
     try {
       setLoading(true);
+      
+      // Ensure payment data is included
+      const submissionData = {
+        ...formData,
+        created_at: new Date(),
+        // Ensure paid status is explicitly set
+        paid: !!formData.paid,
+        payment_status: formData.paid ? 'completed' : 'pending'
+      };
+
       const { error } = await supabase
         .from("registrations")
-        .insert([{ ...formData, paid: false, created_at: new Date() }]);
+        .insert([submissionData]);
+
       if (error) throw error;
 
       await Swal.fire({
@@ -130,12 +154,15 @@ const MultiStepRegistration: React.FC = () => {
             <div
               key={i}
               className={`flex flex-col items-center gap-1 transition-all ${
-                i === activeStep ? "text-blue-600 font-semibold scale-105" : i < activeStep ? "text-green-600" : "text-gray-400"
+                i === activeStep ? "text-blue-600 font-semibold scale-105" : 
+                i < activeStep ? "text-green-600" : "text-gray-400"
               }`}
             >
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center border ${
-                  i === activeStep ? "bg-blue-600 text-white shadow-md" : i < activeStep ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400 border-gray-300"
+                  i === activeStep ? "bg-blue-600 text-white shadow-md" : 
+                  i < activeStep ? "bg-green-500 text-white" : 
+                  "bg-gray-100 text-gray-400 border-gray-300"
                 }`}
               >
                 {i < activeStep ? <FaCheckCircle /> : step.icon}
@@ -168,7 +195,9 @@ const MultiStepRegistration: React.FC = () => {
               onClick={nextStep}
               disabled={!isStepValid}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all ${
-                isStepValid ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                isStepValid 
+                  ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md" 
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
               }`}
             >
               Next <FaArrowRight />
