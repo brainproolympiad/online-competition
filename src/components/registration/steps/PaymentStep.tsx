@@ -16,7 +16,7 @@ const PaymentStep: React.FC<Props> = ({ formData, setFormData, setStepValid }) =
   const config = {
     reference: new Date().getTime().toString(),
     email: formData.email,
-    amount: 50 * 100, // ₦5,000 in kobo (corrected from 50*10 to 50*100)
+    amount: 5000 * 100, // ₦5,000 in kobo (corrected from 50*10 to 50*100)
     publicKey,
   };
 

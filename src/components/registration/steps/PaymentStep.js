@@ -51,7 +51,7 @@ const PaymentStep = ({ formData, setFormData, setStepValid }) => {
         const handler = window.PaystackPop.setup({
             key: publicKey,
             email: formData.email,
-            amount: 100 * 100, // ₦5,000 in kobo
+            amount: 5000 * 100, // ₦5,000 in kobo
             ref: 'PS_' + Math.floor((Math.random() * 1000000000) + 1),
             metadata: {
                 custom_fields: [
