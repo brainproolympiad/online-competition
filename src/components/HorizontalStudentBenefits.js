@@ -17,7 +17,7 @@ const HorizontalStudentBenefits = () => {
             title: "Personalized Learning",
             excerpt: "AI-driven paths adapt to your strengths and weaknesses.",
             fullContent: "Our advanced AI system analyzes your performance across subjects and creates personalized learning paths tailored to your specific needs. The algorithm identifies knowledge gaps and suggests targeted exercises.",
-            imageUrl: "https://media.licdn.com/dms/image/v2/D4D22AQGtlqQ-XNJLAQ/feedshare-shrink_2048_1536/B4DZaGVpmNH4Ao-/0/1746010566303?e=1762992000&v=beta&t=4EkKZseNB4FHe8ixuNbqaV4p71lg68RfikQ_xYMoTsQ",
+            imageUrl: "https://www.warrisentinel.com/wp-content/uploads/2024/10/WhatsApp-Image-2024-10-26-at-17.39.11.jpeg",
             icon: "",
             category: "Academic"
         },
@@ -26,7 +26,7 @@ const HorizontalStudentBenefits = () => {
             title: "Career Mentorship",
             excerpt: "Connect with industry professionals for guidance.",
             fullContent: "Our mentorship program pairs students with experienced professionals in their field of interest. Through regular virtual meetings, mentors provide guidance on career choices, educational paths, and professional development.",
-            imageUrl: "https://media.licdn.com/dms/image/v2/D4D22AQHfA3Rhi91X1w/feedshare-shrink_2048_1536/B4DZZ8lSAoG4As-/0/1745846886528?e=1762992000&v=beta&t=5eMmw5SOTaat076vwel-khkoX6mDmo85wr7KwROtuaY",
+            imageUrl: "https://bisnigeria.org/wp-content/uploads/2019/03/slide.jpg",
             icon: "",
             category: "Career"
         },
