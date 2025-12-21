@@ -21,7 +21,7 @@ const StudentBenefits: React.FC = () => {
       title: "Exclusive Scholarship Opportunities",
       excerpt: "Our platform partners with top schools to offer exclusive scholarships to high-performing students.",
       fullContent: "We've established partnerships with over 150 schools worldwide to provide exclusive scholarship opportunities for our participants. These scholarships range from partial tuition coverage to full-ride opportunities for exceptional students. Our algorithm matches your profile with the most relevant scholarships, increasing your chances of securing financial aid for your education.",
-      imageUrl: "https://media.licdn.com/dms/image/v2/D4D22AQH4_GEuzC-2fw/feedshare-shrink_2048_1536/B4DZmD3zD0IgAw-/0/1758854088825?e=1762992000&v=beta&t=R6OiMas8BrtNXc7UZe2DJ7ubs6cjDoWEDkOt5SCmD4g",
+      imageUrl: "https://www.nigeriaprivateschools.com/uploads/images/Grandmates_Schools.jpg",
       alignment: 'left',
       category: "Financial Benefits",
       date: "May 15, 2023"
@@ -31,7 +31,7 @@ const StudentBenefits: React.FC = () => {
       title: "Personalized Learning Paths",
       excerpt: "AI-driven learning paths adapt to your strengths and weaknesses for optimal academic growth.",
       fullContent: "Our advanced AI system analyzes your performance across subjects and creates personalized learning paths tailored to your specific needs. The algorithm identifies knowledge gaps, suggests targeted exercises, and adapts in real-time as you progress. This personalized approach has been shown to improve learning outcomes by up to 72% compared to traditional one-size-fits-all methods.",
-      imageUrl: "https://media.licdn.com/dms/image/v2/D4D22AQEbAdp6Bl7pOQ/feedshare-shrink_2048_1536/B4DZawcYSSG8A0-/0/1746716959067?e=1762992000&v=beta&t=Q_E0B2TNJPaul1HChCaIIW8DdWD-JUff9HKBURGlK5E",
+      imageUrl: "https://nigeria-britain.org/wp-content/uploads/2025/09/30-1.jpg",
       alignment: 'right',
       category: "Academic Support",
       date: "June 2, 2023"
@@ -41,7 +41,7 @@ const StudentBenefits: React.FC = () => {
       title: "Career Mentorship Program",
       excerpt: "Connect with industry professionals who provide guidance and career advice tailored to your goals.",
       fullContent: "Our mentorship program pairs students with experienced professionals in their field of interest. Through regular virtual meetings, mentors provide guidance on career choices, educational paths, and professional development. Many of our mentors are executives at Fortune 500 companies or leaders in their respective fields, offering invaluable insights and networking opportunities that can jumpstart your career.",
-      imageUrl: "https://media.licdn.com/dms/image/v2/D4E22AQFMF_FnGcRlvA/feedshare-shrink_1280/B4EZnK6PRMIUAs-/0/1760045917961?e=1762992000&v=beta&t=3jQn_NIVE9vGrOn2zeER7xzFDtWTHva8b0CYKUDymrA",
+      imageUrl: "https://thenhef.org/wp-content/uploads/2022/11/DEMI1036.jpg",
       alignment: 'left',
       category: "Career Development",
       date: "June 18, 2023"
