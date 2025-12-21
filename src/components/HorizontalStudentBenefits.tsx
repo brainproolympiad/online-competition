@@ -13,44 +13,44 @@ interface Benefit {
 const HorizontalStudentBenefits: React.FC = () => {
   const [selectedBenefit, setSelectedBenefit] = useState<Benefit | null>(null);
 
-  const benefits: Benefit[] = [
-    {
-      id: 1,
-      title: "Exclusive Scholarships",
-      excerpt: "Special scholarship opportunities for high-performing students.",
-      fullContent: "We've established partnerships with over 50 universities worldwide to provide exclusive scholarship opportunities for our members. These scholarships range from partial tuition coverage to full-ride opportunities for exceptional students.",
-      imageUrl: "https://orientalnewsng.com/wp-content/uploads/2018/05/AK-1.jpg",
-      icon: "",
-      category: "Financial"
-    },
-    {
-      id: 2,
-      title: "Personalized Learning",
-      excerpt: "AI-driven paths adapt to your strengths and weaknesses.",
-      fullContent: "Our advanced AI system analyzes your performance across subjects and creates personalized learning paths tailored to your specific needs. The algorithm identifies knowledge gaps and suggests targeted exercises.",
-      imageUrl: "https://www.warrisentinel.com/wp-content/uploads/2024/10/WhatsApp-Image-2024-10-26-at-17.39.11.jpeg",
-      icon: "",
-      category: "Academic"
-    },
-    {
-      id: 3,
-      title: "Career Mentorship",
-      excerpt: "Connect with industry professionals for guidance.",
-      fullContent: "Our mentorship program pairs students with experienced professionals in their field of interest. Through regular virtual meetings, mentors provide guidance on career choices, educational paths, and professional development.",
-      imageUrl: "https://bisnigeria.org/wp-content/uploads/2019/03/slide.jpg",
-      icon: "",
-      category: "Career"
-    },
-    {
-      id: 4,
-      title: "Global Community",
-      excerpt: "Join a diverse network of students worldwide.",
-      fullContent: "When you join our platform, you become part of a global community of over 500,000 students from 120 countries. This diverse network allows for cultural exchange, collaborative learning, and international friendship.",
-      imageUrl: "https://plus.unsplash.com/premium_photo-1681494736199-9a671f75ade3?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDEyNHx8fGVufDB8fHx8fA%3D%3D",
-      icon: "",
-      category: "Network"
-    }
-  ];
+const benefits: Benefit[] = [
+  {
+    id: 1,
+    title: "Unlock Exclusive & Merit-Based Global Scholarships",
+    excerpt: "Gain direct access to a curated portfolio of 50+ university partnerships offering partial to full-ride scholarships reserved for our high-achieving members.",
+    fullContent: "Our platform is your gateway to significant financial support. Through exclusive partnerships with over 50 leading universities across North America, Europe, and Asia-Pacific, we secure special scholarship funds unavailable to the general applicant pool. These aren't just listings; they are direct opportunities for our members, including merit-based awards, leadership grants, and full tuition coverage for top-tier academic performers. We guide you through the entire application process to maximize your chances of securing these funds and reducing your education costs.",
+    imageUrl: "https://orientalnewsng.com/wp-content/uploads/2018/05/AK-1.jpg",
+    icon: "",
+    category: "Financial"
+  },
+  {
+    id: 2,
+    title: "Your Personalized AI-Powered Academic Roadmap",
+    excerpt: "Experience truly adaptive learning with a dynamic AI mentor that identifies your unique knowledge gaps and builds a custom study plan to ensure mastery.",
+    fullContent: "Move beyond one-size-fits-all education. Our proprietary AI engine acts as your 24/7 academic strategist. By continuously analyzing your performance on quizzes, practice tests, and time-on-task, it creates a dynamically evolving learning path tailored just for you. The system pinpoints precise weaknesses (e.g., calculus integrals or organic chemistry mechanisms) and strengths, then deploys targeted micro-lessons, practice problems, and curated resources from our vast library to fortify your understanding. This data-driven approach ensures you spend time efficiently, mastering difficult concepts faster and building unshakeable confidence.",
+    imageUrl: "https://www.warrisentinel.com/wp-content/uploads/2024/10/WhatsApp-Image-2024-10-26-at-17.39.11.jpeg",
+    icon: "",
+    category: "Academic"
+  },
+  {
+    id: 3,
+    title: "1-on-1 Career Mentorship from Industry Leaders",
+    excerpt: "Accelerate your professional journey with direct, structured guidance from seasoned experts in your target field through our curated mentorship program.",
+    fullContent: "Bridge the gap between academia and your dream career. Our mentorship program is not a simple networking board; it's a structured partnership. We carefully match you with a vetted professional—from Fortune 500 executives and startup founders to renowned researchers—based on your career aspirations, personality, and goals. You'll engage in scheduled, agenda-driven virtual sessions where you receive actionable advice on skill development, industry insights, resume crafting, interview preparation, and strategic networking. This direct line to experience provides clarity, opens doors, and gives you a significant competitive edge in the job market.",
+    imageUrl: "https://bisnigeria.org/wp-content/uploads/2019/03/slide.jpg",
+    icon: "",
+    category: "Career"
+  },
+  {
+    id: 4,
+    title: "Join a Vibrant, Collaborative Global Network",
+    excerpt: "Become part of a diverse, 500,000-strong international community for cross-cultural collaboration, peer support, and lifelong connections.",
+    fullContent: "Your network is your net worth. Upon joining, you're instantly connected to a thriving global ecosystem of over half a million ambitious students and alumni across 120 countries. This active community is your platform for collaborative study groups, international project teams, cultural exchange, and peer-to-peer knowledge sharing. Participate in virtual hackathons, global forums, and regional meet-ups. These connections often evolve into lifelong friendships, future business partnerships, and a powerful professional network that spans the globe, giving you a truly international perspective and support system no matter where your journey takes you.",
+    imageUrl: "https://plus.unsplash.com/premium_photo-1681494736199-9a671f75ade3?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDEyNHx8fGVufDB8fHx8fA%3D%3D",
+    icon: "",
+    category: "Network"
+  }
+];
 
   const openModal = (benefit: Benefit) => {
     setSelectedBenefit(benefit);
