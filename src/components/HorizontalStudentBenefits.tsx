@@ -19,7 +19,7 @@ const HorizontalStudentBenefits: React.FC = () => {
       title: "Exclusive Scholarships",
       excerpt: "Special scholarship opportunities for high-performing students.",
       fullContent: "We've established partnerships with over 50 universities worldwide to provide exclusive scholarship opportunities for our members. These scholarships range from partial tuition coverage to full-ride opportunities for exceptional students.",
-      imageUrl: "https://media.licdn.com/dms/image/v2/D4D22AQEJwmPPEvMt0g/feedshare-shrink_2048_1536/B4DZaGVpl5GwAs-/0/1746010572585?e=1762992000&v=beta&t=FHjbNCkAAN50efpkuQdJMYtnj2S1wi7PulTDKQMyyRE",
+      imageUrl: "https://orientalnewsng.com/wp-content/uploads/2018/05/AK-1.jpg",
       icon: "",
       category: "Financial"
     },
