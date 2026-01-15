@@ -16,8 +16,6 @@ interface AccountingSectionProps {
 }
 
 const AccountingSection: React.FC<AccountingSectionProps> = ({
-  totalRevenue,
-  
   filteredParticipants,
   selectedParticipants,
   setSelectedParticipants,
@@ -25,6 +23,12 @@ const AccountingSection: React.FC<AccountingSectionProps> = ({
   participants,
   updateParticipants
 }) => {
+  // Calculate revenue based on number of participants (₦5,000 per participant)
+  const calculatedRevenue = participants.length * 5000;
+  
+  // Use either the calculated revenue or the provided totalRevenue
+  const displayRevenue = calculatedRevenue;
+
   const handleBulkQuizLinks = async () => {
     if (selectedParticipants.size === 0) {
       Swal.fire("Warning", "Please select participants first", "warning");
@@ -173,9 +177,14 @@ const AccountingSection: React.FC<AccountingSectionProps> = ({
     <div className="mb-6 flex flex-wrap justify-between items-center bg-white p-4 rounded shadow gap-4">
       <div>
         <h2 className="font-bold text-lg">Accounting</h2>
-        <p className="text-green-600 font-semibold text-lg">
-          Total Revenue: ₦{totalRevenue.toLocaleString()}
-        </p>
+        <div className="flex items-center gap-4">
+          <p className="text-green-600 font-semibold text-lg">
+            Total Revenue: ₦{displayRevenue.toLocaleString()}
+          </p>
+          <div className="text-sm text-gray-500">
+            (₦5,000 × {participants.length} participants)
+          </div>
+        </div>
       </div>
       
       <div className="flex flex-wrap gap-2">
