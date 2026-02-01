@@ -18,7 +18,7 @@ const HorizontalStudentBenefits = () => {
     title: "Your Personalized AI-Powered Academic Roadmap",
     excerpt: "Experience truly adaptive learning with a dynamic AI mentor that identifies your unique knowledge gaps and builds a custom study plan to ensure mastery.",
     fullContent: "Move beyond one-size-fits-all education. Our proprietary AI engine acts as your 24/7 academic strategist. By continuously analyzing your performance on quizzes, practice tests, and time-on-task, it creates a dynamically evolving learning path tailored just for you. The system pinpoints precise weaknesses (e.g., calculus integrals or organic chemistry mechanisms) and strengths, then deploys targeted micro-lessons, practice problems, and curated resources from our vast library to fortify your understanding. This data-driven approach ensures you spend time efficiently, mastering difficult concepts faster and building unshakeable confidence.",
-    imageUrl: "https://www.warrisentinel.com/wp-content/uploads/2024/10/WhatsApp-Image-2024-10-26-at-17.39.11.jpeg",
+    imageUrl: "https://images.unsplash.com/photo-1635372722656-389f87a941b7?q=80&w=1631&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     icon: "",
     category: "Academic"
   },

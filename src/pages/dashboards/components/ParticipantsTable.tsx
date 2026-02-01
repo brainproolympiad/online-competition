@@ -1,6 +1,6 @@
 // src/components/ParticipantsTable.tsx
 import React from "react";
-import type { Participant, QuizAttempt } from "../types/adminTypes";
+import type { Participant } from "../types/adminTypes";
 
 interface ParticipantsTableProps {
   loading: boolean;
@@ -38,30 +38,35 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
     }
   };
 
-  // Calculate total score from quiz attempts
+  // Calculate total score from quiz attempts - FIXED
   const calculateTotalScore = (participant: Participant): number => {
     if (!participant.quizAttempts || participant.quizAttempts.length === 0) {
       return 0;
     }
     
     return participant.quizAttempts.reduce((total, attempt) => {
-      return total + (attempt.score || 0);
+      // FIX: Convert score to number before adding
+      const score = attempt.score || attempt.percentage || 0;
+      const numericScore = Number(score) || 0;
+      return total + numericScore;
     }, 0);
   };
 
-  // Calculate average score percentage
+  // Calculate average score percentage - FIXED
   const calculateAverageScore = (participant: Participant): number => {
     if (!participant.quizAttempts || participant.quizAttempts.length === 0) {
       return 0;
     }
     
     const totalScore = calculateTotalScore(participant);
-    const totalPossible = participant.quizAttempts.reduce((total, attempt) => {
-      return total + (attempt.total_questions || 0);
-    }, 0);
+    
+    // FIX: Each quiz is worth 100 marks, not total_questions
+    const totalPossible = participant.quizAttempts.length * 100;
     
     return totalPossible > 0 ? Math.round((totalScore / totalPossible) * 100) : 0;
   };
+
+  // Alternative: Calculate average from individual quiz percentages
 
   // Get score color based on average percentage
   const getScoreColor = (percentage: number): string => {
@@ -83,6 +88,20 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
     if (percentage >= 60) return "Good";
     if (percentage >= 40) return "Average";
     return "Needs Help";
+  };
+
+  // Format courses display
+  const formatCourses = (courses: string[] | string | undefined): string[] => {
+    if (!courses) return [];
+    if (typeof courses === "string") {
+      try {
+        const parsed = JSON.parse(courses);
+        return Array.isArray(parsed) ? parsed : [courses];
+      } catch {
+        return courses.split(",").map((c) => c.trim());
+      }
+    }
+    return courses;
   };
 
   if (loading) {
@@ -172,6 +191,19 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
               const scoreColor = getScoreColor(averageScore);
               const performanceBadgeColor = getPerformanceBadgeColor(averageScore);
               const performanceText = getPerformanceText(averageScore);
+              const coursesArray = formatCourses(participant.courses);
+
+              // Debug log for each participant
+              console.log(`Participant ${participant.fullName}:`, {
+                quizAttempts: quizAttempts.map(a => ({
+                  score: a.score,
+                  percentage: a.percentage,
+                  correct_answers: a.correct_answers,
+                  total_questions: a.total_questions
+                })),
+                totalScore,
+                averageScore
+              });
 
               return (
                 <tr key={participant.id} className="hover:bg-blue-50/30 transition-colors duration-150">
@@ -207,9 +239,9 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                         {participant.classLevel}
                       </span>
                       <div className="text-xs text-gray-600 max-w-xs">
-                        {participant.courses?.slice(0, 2).join(", ")}
-                        {participant.courses && participant.courses.length > 2 && (
-                          <span className="text-blue-600 ml-1">+{participant.courses.length - 2} more</span>
+                        {coursesArray.slice(0, 2).join(", ")}
+                        {coursesArray.length > 2 && (
+                          <span className="text-blue-600 ml-1">+{coursesArray.length - 2} more</span>
                         )}
                       </div>
                     </div>
@@ -224,7 +256,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                       </div>
                       {quizAttempts.length > 0 && (
                         <div className="text-xs text-gray-500">
-                          Latest: {new Date(quizAttempts[0].submitted_at).toLocaleDateString()}
+                          Latest: {new Date(quizAttempts[0].submitted_at || quizAttempts[0].completed_at).toLocaleDateString()}
                         </div>
                       )}
                       {quizAttempts.some(attempt => attempt.cheat_attempts > 0) && (
@@ -241,6 +273,9 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                     <div className="text-center p-3 bg-gradient-to-br from-gray-50 to-blue-50 rounded-lg border border-gray-200">
                       <div className="text-2xl font-bold text-gray-900">{totalScore}</div>
                       <div className="text-xs text-gray-500 mt-1">points</div>
+                      <div className="text-xs text-blue-600 mt-1">
+                        ({totalScore}/{quizAttempts.length * 100} total)
+                      </div>
                     </div>
                   </td>
 
@@ -249,6 +284,9 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                     <div className={`text-center p-3 rounded-lg border ${scoreColor} border-current`}>
                       <div className="text-2xl font-bold">{averageScore}%</div>
                       <div className="text-xs opacity-75 mt-1">average</div>
+                      <div className="text-xs opacity-75 mt-1">
+                        ({quizAttempts.length} quizzes)
+                      </div>
                     </div>
                   </td>
 
@@ -263,6 +301,9 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                           className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-500"
                           style={{ width: `${Math.min(averageScore, 100)}%` }}
                         ></div>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {quizAttempts.length} completed
                       </div>
                     </div>
                   </td>

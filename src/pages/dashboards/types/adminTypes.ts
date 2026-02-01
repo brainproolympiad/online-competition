@@ -178,6 +178,8 @@
 
 // src/types/adminTypes.ts
 export interface QuizAttempt {
+  completed_at: string;
+  percentage: any;
   id: string;
   quiz_id: string;
   participant_id: string;

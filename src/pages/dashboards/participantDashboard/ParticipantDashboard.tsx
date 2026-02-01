@@ -1,5 +1,5 @@
 // src/pages/dashboards/ParticipantDashboard.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { supabase } from "../../../supabaseClient";
 import { useNavigate } from "react-router-dom";
 import Swal from 'sweetalert2';
@@ -80,16 +80,28 @@ interface SubjectScore {
   bestScore: number;
 }
 
+interface ProfilePicture {
+  id: string;
+  participant_id: string;
+  avatar_url: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const ParticipantDashboard: React.FC = () => {
   const [participant, setParticipant] = useState<Participant | null>(null);
   const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
   const [quizzes, setQuizzes] = useState<QuizInfo[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [profilePicture, setProfilePicture] = useState<ProfilePicture | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sample data for fallback
   const sampleResources: Resource[] = [
@@ -248,6 +260,26 @@ const ParticipantDashboard: React.FC = () => {
     }
   };
 
+  // Fetch profile picture
+  const fetchProfilePicture = async (participantId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("profile_pictures")
+        .select("*")
+        .eq("participant_id", participantId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error("Error fetching profile picture:", error);
+      }
+      
+      return data;
+    } catch (error) {
+      console.error("Error fetching profile picture:", error);
+      return null;
+    }
+  };
+
   // Utility functions
   const normalizeClassLevel = (classLevel: string | null | undefined): string => {
     if (!classLevel) return '';
@@ -273,21 +305,20 @@ const ParticipantDashboard: React.FC = () => {
     });
   };
 
- //  update the getQuizStatus function:
-const getQuizStatus = (quiz: any): 'upcoming' | 'active' | 'completed' => {
-  const now = new Date();
-  const start = new Date(quiz.start_time || now);
-  const end = new Date(quiz.end_time || new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000));
-  
-  // If quiz is inactive, show as upcoming
-  if (quiz.is_active === false) {
-    return 'upcoming';
-  }
-  
-  if (now < start) return 'upcoming';
-  if (now > end) return 'completed';
-  return 'active';
-};
+  const getQuizStatus = (quiz: any): 'upcoming' | 'active' | 'completed' => {
+    const now = new Date();
+    const start = new Date(quiz.start_time || now);
+    const end = new Date(quiz.end_time || new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000));
+    
+    // If quiz is inactive, show as upcoming
+    if (quiz.is_active === false) {
+      return 'upcoming';
+    }
+    
+    if (now < start) return 'upcoming';
+    if (now > end) return 'completed';
+    return 'active';
+  };
 
   const formatCourses = (courses: string[] | string): string[] => {
     if (!courses) return [];
@@ -302,12 +333,6 @@ const getQuizStatus = (quiz: any): 'upcoming' | 'active' | 'completed' => {
     return courses;
   };
 
-  const formatTimeSpent = (seconds: number | undefined): string => {
-    if (!seconds) return "N/A";
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}m ${secs}s`;
-  };
 
   const formatSubjectName = (subject: string): string => {
     const subjectMappings: { [key: string]: string } = {
@@ -337,6 +362,37 @@ const getQuizStatus = (quiz: any): 'upcoming' | 'active' | 'completed' => {
     if (score >= 60) return "Average";
     if (score >= 50) return "Pass";
     return "Needs Improvement";
+  };
+
+  // Check if a quiz has been attempted
+  const hasQuizBeenAttempted = (quizId: string): boolean => {
+    return quizAttempts.some(attempt => attempt.quiz_id === quizId);
+  };
+
+  // Get quiz attempt status for a specific quiz
+  const getQuizAttemptStatus = (quizId: string): 'not_attempted' | 'in_progress' | 'completed' | 'abandoned' => {
+    const attempt = quizAttempts.find(attempt => attempt.quiz_id === quizId);
+    if (!attempt) return 'not_attempted';
+    return attempt.status;
+  };
+
+  // Get the attempt result for a specific quiz
+  const getQuizAttemptResult = (quizId: string): { score: number; percentage: number; passed: boolean } | null => {
+    const attempt = quizAttempts.find(attempt => 
+      attempt.quiz_id === quizId && attempt.status === 'completed'
+    );
+    
+    if (!attempt) return null;
+    
+    const percentage = attempt.percentage || 
+      (attempt.total_questions > 0 ? 
+        Math.round((attempt.correct_answers / attempt.total_questions) * 100) : 0);
+    
+    return {
+      score: attempt.score || 0,
+      percentage,
+      passed: percentage >= (attempt.quizzes?.passing_score || 50)
+    };
   };
 
   // Calculate subject scores
@@ -379,9 +435,21 @@ const getQuizStatus = (quiz: any): 'upcoming' | 'active' | 'completed' => {
       attempt.status === 'completed'
     );
     
-    const totalScore = completedAttempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0);
-    const totalPossible = completedAttempts.reduce((sum, attempt) => sum + (attempt.total_questions || 0), 0);
-    const overallPercentage = totalPossible > 0 ? Math.round((totalScore / totalPossible) * 100) : 0;
+    // Convert scores to numbers before adding!
+    const totalScore = completedAttempts.reduce((sum, attempt) => {
+      // Get the score and ensure it's a number
+      const score = attempt.score || attempt.percentage || 0;
+      const numericScore = Number(score);
+      return sum + numericScore;
+    }, 0);
+    
+    // Each quiz is worth 100 marks
+    const totalPossible = completedAttempts.length * 100;
+    
+    // Calculate percentage: (152 / 200) × 100 = 76%
+    const overallPercentage = totalPossible > 0 ? 
+      Math.round((totalScore / totalPossible) * 100) : 0;
+    
     const completedExams = completedAttempts.length;
     
     const totalTimeSpent = completedAttempts.reduce((sum, attempt) => 
@@ -395,6 +463,42 @@ const getQuizStatus = (quiz: any): 'upcoming' | 'active' | 'completed' => {
       completedExams,
       totalTimeSpent
     };
+  };
+
+  // Handle quiz start
+  const handleStartQuiz = (quiz: QuizInfo) => {
+    if (hasQuizBeenAttempted(quiz.id)) {
+      Swal.fire({
+        title: 'Quiz Already Attempted',
+        text: 'You have already attempted this quiz. You cannot take it again.',
+        icon: 'info',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+    
+    navigate(quiz.link);
+  };
+
+  // View quiz results
+  const handleViewQuizResults = (quizId: string) => {
+    const attempt = quizAttempts.find(attempt => attempt.quiz_id === quizId);
+    if (attempt) {
+      Swal.fire({
+        title: 'Quiz Results',
+        html: `
+          <div class="text-left">
+            <p><strong>Score:</strong> ${attempt.score || 0}</p>
+            <p><strong>Correct Answers:</strong> ${attempt.correct_answers || 0}/${attempt.total_questions || 0}</p>
+            <p><strong>Percentage:</strong> ${attempt.percentage || 0}%</p>
+            <p><strong>Status:</strong> ${attempt.status}</p>
+            <p><strong>Completed:</strong> ${new Date(attempt.completed_at).toLocaleDateString()}</p>
+          </div>
+        `,
+        icon: 'info',
+        confirmButtonText: 'OK'
+      });
+    }
   };
 
   // Refresh scores
@@ -411,6 +515,212 @@ const getQuizStatus = (quiz: any): 'upcoming' | 'active' | 'completed' => {
         Swal.fire('Info', 'No completed quizzes found.', 'info');
       }
     }
+  };
+
+  // Upload profile picture
+  const uploadProfilePicture = async (file: File, participantId: string) => {
+    setIsUploading(true);
+    setUploadProgress(0);
+    
+    try {
+      // Show upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return prev;
+          }
+          return prev + 10;
+        });
+      }, 100);
+
+      // Create unique file name
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${participantId}/${Date.now()}.${fileExt}`;
+
+      // Upload file to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) {
+        clearInterval(progressInterval);
+        throw uploadError;
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      const publicUrl = urlData.publicUrl;
+
+      // Update or insert profile picture record
+      const { data: profileData, error: profileError } = await supabase
+        .from('profile_pictures')
+        .upsert({
+          participant_id: participantId,
+          avatar_url: publicUrl,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'participant_id'
+        })
+        .select()
+        .single();
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      // Update local state
+      setProfilePicture(profileData);
+
+      // Add a small delay for smooth UI transition
+      setTimeout(() => {
+        Swal.fire({
+          title: 'Success!',
+          text: 'Profile picture uploaded successfully.',
+          icon: 'success',
+          confirmButtonText: 'OK'
+        });
+        setIsUploading(false);
+        setUploadProgress(0);
+      }, 500);
+
+    } catch (error: any) {
+      console.error("Error uploading profile picture:", error);
+      setIsUploading(false);
+      setUploadProgress(0);
+      
+      Swal.fire({
+        title: 'Error!',
+        text: error.message || 'Failed to upload profile picture.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+    }
+  };
+
+  // Delete profile picture
+  const deleteProfilePicture = async (participantId: string) => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'This will remove your profile picture.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      // Get current profile picture
+      const { data: currentPic } = await supabase
+        .from('profile_pictures')
+        .select('avatar_url')
+        .eq('participant_id', participantId)
+        .single();
+
+      // Delete from storage if exists
+      if (currentPic?.avatar_url) {
+        const urlParts = currentPic.avatar_url.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        const fullPath = `${participantId}/${fileName}`;
+
+        await supabase.storage
+          .from('avatars')
+          .remove([fullPath]);
+      }
+
+      // Delete from database
+      const { error } = await supabase
+        .from('profile_pictures')
+        .delete()
+        .eq('participant_id', participantId);
+
+      if (error) throw error;
+
+      // Update local state
+      setProfilePicture(null);
+
+      Swal.fire({
+        title: 'Deleted!',
+        text: 'Your profile picture has been removed.',
+        icon: 'success',
+        confirmButtonText: 'OK'
+      });
+
+    } catch (error: any) {
+      console.error("Error deleting profile picture:", error);
+      Swal.fire({
+        title: 'Error!',
+        text: error.message || 'Failed to delete profile picture.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+    }
+  };
+
+  // Handle file input change
+  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !participant) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      Swal.fire({
+        title: 'Invalid File',
+        text: 'Please upload a valid image file (JPEG, PNG, GIF, or WebP).',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      Swal.fire({
+        title: 'File Too Large',
+        text: 'Please upload an image smaller than 5MB.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    await uploadProfilePicture(file, participant.id);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Trigger file input
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  // Get avatar URL with fallback
+  const getAvatarUrl = () => {
+    if (profilePicture?.avatar_url) {
+      return profilePicture.avatar_url;
+    }
+    // Fallback to avatar generator
+    return `https://ui-avatars.com/api/?name=${participant?.fullName}&background=random&size=128&bold=true`;
   };
 
   // Main data loading effect
@@ -436,17 +746,19 @@ const getQuizStatus = (quiz: any): 'upcoming' | 'active' | 'completed' => {
         setParticipant(participantData);
 
         // Load all data in parallel
-        const [attempts, resourcesData, quizzesData, announcementsData] = await Promise.all([
+        const [attempts, resourcesData, quizzesData, announcementsData, profilePicData] = await Promise.all([
           fetchQuizAttempts(participantData.id),
           fetchResources(),
           fetchQuizzes(participantData.classLevel),
-          fetchAnnouncements()
+          fetchAnnouncements(),
+          fetchProfilePicture(participantData.id)
         ]);
 
         setQuizAttempts(attempts);
         setResources(resourcesData);
         setQuizzes(quizzesData);
         setAnnouncements(announcementsData);
+        setProfilePicture(profilePicData);
         
       } catch (error) {
         console.error("Error loading dashboard:", error);
@@ -519,6 +831,15 @@ const getQuizStatus = (quiz: any): 'upcoming' | 'active' | 'completed' => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Hidden file input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileInputChange}
+        accept="image/*"
+        className="hidden"
+      />
+
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -545,41 +866,118 @@ const getQuizStatus = (quiz: any): 'upcoming' | 'active' | 'completed' => {
         <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
           <div className="px-4 py-5 sm:p-6">
             <div className="flex items-center">
-              <img
-                className="h-16 w-16 rounded-full"
-                src={`https://ui-avatars.com/api/?name=${participant?.fullName}&background=random&size=128&bold=true`}
-                alt="Avatar"
-              />
-              <div className="ml-4 flex-1">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  {participant?.fullName}
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  {participant?.email}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    🏫 {participantClass}
-                  </span>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    📚 {courseArray.length} Courses
-                  </span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    participant?.paid 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    💳 {participant?.paid ? "Paid" : "Unpaid"}
-                  </span>
+              {/* Profile Picture Section */}
+              <div className="relative group">
+                <div className="relative">
+                  <img
+                    className="h-20 w-20 rounded-full border-4 border-white shadow-lg object-cover"
+                    src={getAvatarUrl()}
+                    alt="Profile"
+                    onError={(e) => {
+                      // Fallback if image fails to load
+                      e.currentTarget.src = `https://ui-avatars.com/api/?name=${participant?.fullName}&background=random&size=128&bold=true`;
+                    }}
+                  />
+                  
+                  {/* Upload Overlay */}
+                  <div className="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={triggerFileInput}
+                      disabled={isUploading}
+                      className="text-white text-sm font-medium p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors duration-200"
+                      title="Change profile picture"
+                    >
+                      {isUploading ? (
+                        <div className="relative">
+                          <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          {uploadProgress > 0 && (
+                            <div className="absolute inset-0 flex items-center justify-center text-xs font-bold">
+                              {uploadProgress}%
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+
+                
+                 
+                </div>
+
+                {/* Upload Progress Bar (outside the image) */}
+                {isUploading && (
+                  <div className="mt-2 w-20">
+                    <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-blue-600 transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-gray-500 text-center mt-1">
+                      {uploadProgress < 100 ? 'Uploading...' : 'Processing...'}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="ml-6 flex-1">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">
+                      {participant?.fullName}
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {participant?.email}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        🏫 {participantClass}
+                      </span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        📚 {courseArray.length} Courses
+                      </span>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        participant?.paid 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        💳 {participant?.paid ? "Paid" : "Unpaid"}
+                      </span>
+                      {profilePicture && (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          📸 Profile Picture
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={refreshScores}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    Refresh Scores
+                  </button>
                 </div>
               </div>
-              <button
-                onClick={refreshScores}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-              >
-                Refresh Scores
-              </button>
             </div>
+
+            {/* Profile Picture Instructions */}
+            {!profilePicture && !isUploading && (
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-sm text-blue-700">
+                    Click on the camera icon to upload your profile picture. Supported formats: JPEG, PNG, GIF, WebP (max 5MB)
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -691,34 +1089,113 @@ const getQuizStatus = (quiz: any): 'upcoming' | 'active' | 'completed' => {
                 Available Quizzes
               </h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {quizzes.map((quiz) => (
-                  <div key={quiz.id} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="text-md font-medium text-gray-900">{quiz.title}</h4>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        quiz.status === 'active' ? 'bg-green-100 text-green-800' :
-                        quiz.status === 'upcoming' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {quiz.status}
-                      </span>
+                {quizzes.map((quiz) => {
+                  const isAttempted = hasQuizBeenAttempted(quiz.id);
+                  const attemptStatus = getQuizAttemptStatus(quiz.id);
+                  const attemptResult = getQuizAttemptResult(quiz.id);
+                  const isQuizActive = quiz.status === 'active';
+
+                  return (
+                    <div key={quiz.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="text-md font-medium text-gray-900">{quiz.title}</h4>
+                        <div className="flex flex-col items-end">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            quiz.status === 'active' ? 'bg-green-100 text-green-800' :
+                            quiz.status === 'upcoming' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {quiz.status}
+                          </span>
+                          {isAttempted && (
+                            <span className={`mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              attemptStatus === 'completed' ? 'bg-blue-100 text-blue-800' :
+                              attemptStatus === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {attemptStatus === 'completed' ? 'Completed' :
+                               attemptStatus === 'in_progress' ? 'In Progress' : 'Attempted'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">{quiz.subject}</p>
+                      <p className="text-xs text-gray-500 mb-3">{quiz.instructions}</p>
+                      <div className="flex justify-between text-xs text-gray-500 mb-3">
+                        <span>Duration: {quiz.duration}m</span>
+                        <span>Questions: {quiz.total_questions}</span>
+                      </div>
+                      
+                      {/* Show attempt result if completed */}
+                      {attemptResult && (
+                        <div className="mb-3 p-2 bg-gray-50 rounded">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium">Your Score:</span>
+                            <span className={`text-sm font-bold ${
+                              attemptResult.passed ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {attemptResult.percentage}%
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {attemptResult.passed ? 'Passed' : 'Failed'} • {attemptResult.score} points
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Action buttons */}
+                      <div className="flex space-x-2">
+                        {isQuizActive && !isAttempted && (
+                          <button
+                            onClick={() => handleStartQuiz(quiz)}
+                            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                          >
+                            Start Quiz
+                          </button>
+                        )}
+                        
+                        {isAttempted && (
+                          <button
+                            onClick={() => handleViewQuizResults(quiz.id)}
+                            className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-green-700 transition-colors"
+                          >
+                            View Results
+                          </button>
+                        )}
+                        
+                        {isQuizActive && isAttempted && (
+                          <button
+                            disabled
+                            className="flex-1 bg-gray-400 text-white py-2 px-4 rounded-md text-sm font-medium cursor-not-allowed opacity-50"
+                            title="Quiz already attempted"
+                          >
+                            Already Attempted
+                          </button>
+                        )}
+                        
+                        {quiz.status === 'upcoming' && (
+                          <button
+                            disabled
+                            className="flex-1 bg-gray-400 text-white py-2 px-4 rounded-md text-sm font-medium cursor-not-allowed opacity-50"
+                            title="Quiz not yet available"
+                          >
+                            Coming Soon
+                          </button>
+                        )}
+                        
+                        {quiz.status === 'completed' && !isAttempted && (
+                          <button
+                            disabled
+                            className="flex-1 bg-gray-400 text-white py-2 px-4 rounded-md text-sm font-medium cursor-not-allowed opacity-50"
+                            title="Quiz has ended"
+                          >
+                            Quiz Ended
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">{quiz.subject}</p>
-                    <p className="text-xs text-gray-500 mb-3">{quiz.instructions}</p>
-                    <div className="flex justify-between text-xs text-gray-500 mb-3">
-                      <span>Duration: {quiz.duration}m</span>
-                      <span>Questions: {quiz.total_questions}</span>
-                    </div>
-                    {quiz.status === 'active' && (
-                      <button
-                        onClick={() => navigate(quiz.link)}
-                        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-                      >
-                        Start Quiz
-                      </button>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
                 {quizzes.length === 0 && (
                   <div className="col-span-full text-center py-8">
                     <p className="text-gray-500">No quizzes available for your class.</p>
