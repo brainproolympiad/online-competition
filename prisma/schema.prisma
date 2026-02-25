@@ -1,0 +1,69 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// User model for both Admin & Candidate
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+
+  // Relations
+  quizzes   QuizResult[]
+}
+
+// Question posted by Admin
+model Question {
+  id        Int      @id @default(autoincrement())
+  class     String   // candidate class (e.g. "SS1", "JSS2")
+  text      String
+  options   String[] // ["A", "B", "C", "D"]
+  answer    String   // correct option
+  createdAt DateTime @default(now())
+}
+
+// Candidate quiz results
+model QuizResult {
+  id        Int      @id @default(autoincrement())
+  score     Int
+  takenAt   DateTime @default(now())
+
+  // Relations
+  candidateId Int
+  candidate   User @relation(fields: [candidateId], references: [id])
+}
+
+
+model Registration {
+  id             Int      @id @default(autoincrement())
+  fullName       String
+  email          String   @unique
+  phone          String?
+  address        String?
+  state          String?
+  lga            String?
+  schoolName     String?
+  currentClass   String?
+  previousResult String?
+  course         String?
+  username       String?
+  paid           Boolean  @default(false)
+  paymentRef     String?
+  createdAt      DateTime @default(now())
+}
+
+
+
+enum Role {
+  ADMIN
+  CANDIDATE
+}
